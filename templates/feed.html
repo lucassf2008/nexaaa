@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Feed de Empresas e Networking — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div class="feed-page-layout">
+  <!-- =========================================================================
+       COLUNA PRINCIPAL: PUBLICAÇÕES DE EMPRESAS E ALUNOS (Desktop 3)
+       ========================================================================= -->
+  <section class="feed-main-column">
+    <!-- Badge Vermelho Oficial "Novas Publicações" (Desktop 3) -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+      <div class="feed-header-badge">
+        <i class="fas fa-bullhorn"></i>
+        <span>Novas Publicações</span>
+      </div>
+
+      {% if current_user %}
+        <button type="button" class="btn-senai btn-sm" onclick="openModal('create-post-modal')">
+          <i class="fas fa-feather-alt"></i> Criar Publicação
+        </button>
+      {% endif %}
+    </div>
+
+    <!-- Lista de Publicações -->
+    {% if posts %}
+      {% for post in posts %}
+        <article class="company-post-card">
+          <!-- Cabeçalho do Card da Empresa / Aluno (Desktop 3) -->
+          <div class="post-header-row">
+            <div class="post-author-block">
+              {% if post.author.role == 'empresa' and post.author.company_profile %}
+                <img src="{{ post.author.company_profile.logo_url }}" alt="{{ post.author.display_name }}" class="post-author-logo">
+                <div>
+                  <a href="{{ url_for('company.profile_view', company_id=post.author.company_profile.id) }}" class="post-author-name">
+                    {{ post.author.company_profile.name }}
+                  </a>
+                  <span class="post-author-subtitle">{{ post.author.company_profile.headline }}</span>
+                </div>
+              {% elif post.author.role == 'aluno' and post.author.student_profile %}
+                <img src="{{ post.author.student_profile.avatar_url }}" alt="{{ post.author.display_name }}" class="post-author-logo" style="border-radius: 50%;">
+                <div>
+                  <a href="{{ url_for('profile.student_profile', student_id=post.author.student_profile.id) }}" class="post-author-name">
+                    {{ post.author.student_profile.full_name }}
+                  </a>
+                  <span class="post-author-subtitle">{{ post.author.student_profile.headline }}</span>
+                </div>
+              {% else %}
+                <img src="{{ url_for('static', filename='images/default_avatar.png') }}" class="post-author-logo" alt="Nexa SENAI">
+                <div>
+                  <span class="post-author-name">{{ post.author.display_name }}</span>
+                  <span class="post-author-subtitle">Administração Nexa SENAI</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Botão de Ação Lateral no Topo (Desktop 3: Enviar Currículo ou Seguir) -->
+            <div>
+              {% if post.author.role == 'empresa' and post.author.company_profile %}
+                {% if current_user and current_user.role == 'aluno' %}
+                  <a href="{{ url_for('jobs.list_jobs', empresa=post.author.company_profile.name) }}" class="btn-senai btn-sm">
+                    Enviar Currículo
+                  </a>
+                {% else %}
+                  <button type="button" class="btn-senai-outline btn-sm btn-follow-ajax" data-company-id="{{ post.author.company_profile.id }}">
+                    {% if post.author.company_profile.id in followed_company_ids %}Seguindo{% else %}+ Seguir{% endif %}
+                  </button>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Título e Texto da Publicação -->
+          {% if post.title %}
+            <h3 class="post-title-text">{{ post.title }}</h3>
+          {% endif %}
+          <div class="post-body-text">
+            {{ post.content }}
+          </div>
+
+          <!-- Mídia / Imagem Opcional -->
+          {% if post.image_url %}
+            <div class="post-media-container">
+              <img src="{{ post.image_url }}" alt="Publicação Nexa" class="post-media-img">
+            </div>
+          {% endif %}
+
+          <!-- Barra Inferior de Interações -->
+          <div class="post-actions-toolbar">
+            <!-- Botão Curtir -->
+            <button type="button" class="post-action-btn btn-like-ajax {% if post.id in liked_post_ids %}liked{% endif %}" data-post-id="{{ post.id }}">
+              <i class="{% if post.id in liked_post_ids %}fas fa-heart text-danger{% else %}far fa-heart{% endif %}"></i>
+              <span>Curtir</span>
+              <span class="like-counter" style="margin-left: 2px;">({{ post.likes.count() }})</span>
+            </button>
+
+            <!-- Botão Comentários -->
+            <button type="button" class="post-action-btn" onclick="toggleComments('comments-{{ post.id }}')">
+              <i class="far fa-comment-alt"></i>
+              <span>Comentar</span>
+              <span style="margin-left: 2px;">({{ post.comments.count() }})</span>
+            </button>
+
+            <!-- Compartilhar -->
+            <button type="button" class="post-action-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('Link da publicação copiado para a área de transferência!');">
+              <i class="far fa-share-square"></i>
+              <span>Compartilhar</span>
+            </button>
+          </div>
+
+          <!-- Seção Expansível de Comentários -->
+          <div id="comments-{{ post.id }}" style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border-light);">
+            {% if post.comments.count() > 0 %}
+              <div style="margin-bottom: 14px;">
+                {% for comment in post.comments %}
+                  <div style="display: flex; gap: 10px; margin-bottom: 10px; font-size: 13px;">
+                    <img src="{{ comment.author.avatar }}" alt="{{ comment.author.display_name }}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                    <div style="background-color: #F8F9FA; padding: 8px 14px; border-radius: var(--radius-md); flex: 1;">
+                      <strong style="color: var(--text-primary); display: block;">{{ comment.author.display_name }}</strong>
+                      <span style="color: #4B5563;">{{ comment.content }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <!-- Formulário para Adicionar Comentário -->
+            {% if current_user %}
+              <form action="{{ url_for('main.add_comment', post_id=post.id) }}" method="POST" style="display: flex; gap: 8px;">
+                <input type="text" name="content" placeholder="Escreva um comentário profissional..." class="auth-input-field" style="height: 38px; font-size: 13px;" required>
+                <button type="submit" class="btn-senai btn-sm" style="padding: 0 16px;">Enviar</button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <div class="nexa-card" style="text-align: center; padding: 40px;">
+        <i class="far fa-newspaper" style="font-size: 36px; color: var(--text-muted); margin-bottom: 12px;"></i>
+        <h3>Nenhuma publicação no feed no momento.</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">Seja o primeiro a compartilhar uma conquista ou novidade!</p>
+        {% if current_user %}
+          <button type="button" class="btn-senai" onclick="openModal('create-post-modal')">Publicar Agora</button>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- =========================================================================
+       COLUNA LATERAL: SUGESTÕES PARA VOCÊ (Desktop 3)
+       ========================================================================= -->
+  <aside class="feed-sidebar-column">
+    <!-- Card "Sugestões para você" (Desktop 3) -->
+    <div class="networking-sidebar-card">
+      <h3 class="networking-sidebar-title">Sugestões para você</h3>
+
+      {% for student in suggested_students %}
+        <div class="suggestion-item">
+          <img src="{{ student.avatar_url }}" alt="{{ student.full_name }}" class="suggestion-avatar">
+          <div class="suggestion-details">
+            <a href="{{ url_for('profile.student_profile', student_id=student.id) }}" class="suggestion-name">
+              {{ student.full_name }}
+            </a>
+            <div class="suggestion-headline">{{ student.headline }}</div>
+          </div>
+          {% if current_user and current_user.id != student.user_id %}
+            <form action="{{ url_for('main.send_connection_request', target_user_id=student.user_id) }}" method="POST">
+              <button type="submit" class="btn-senai btn-sm" style="padding: 4px 10px; font-size: 11px;">
+                + Conectar
+              </button>
+            </form>
+          {% else %}
+            <a href="{{ url_for('profile.student_profile', student_id=student.id) }}" class="btn-senai-outline btn-sm" style="padding: 4px 10px; font-size: 11px;">
+              Ver
+            </a>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      {% for company in suggested_companies %}
+        <div class="suggestion-item">
+          <img src="{{ company.logo_url }}" alt="{{ company.name }}" class="suggestion-avatar" style="border-radius: 8px;">
+          <div class="suggestion-details">
+            <a href="{{ url_for('company.profile_view', company_id=company.id) }}" class="suggestion-name">
+              {{ company.name }}
+            </a>
+            <div class="suggestion-headline">{{ company.sector }}</div>
+          </div>
+          <button type="button" class="btn-senai btn-sm btn-follow-ajax" data-company-id="{{ company.id }}" style="padding: 4px 10px; font-size: 11px;">
+            + Seguir
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Caixa de Chamada para Publicar (Desktop 3) -->
+    <div class="publish-cta-box">
+      <p class="publish-cta-text">
+        Publique aqui seu currículo ou a vaga de emprego da sua empresa
+      </p>
+      {% if current_user %}
+        <button type="button" class="btn-senai btn-block" onclick="openModal('create-post-modal')">
+          Publicar
+        </button>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn-senai btn-block">
+          Entrar para Publicar
+        </a>
+      {% endif %}
+    </div>
+  </aside>
+</div>
+
+<!-- Modal para Criar Publicação -->
+{% if current_user %}
+  <div class="modal-overlay" id="create-post-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" onclick="closeModal('create-post-modal')">&times;</button>
+      <h3 style="font-size: 20px; font-weight: 800; color: var(--senai-red); margin-bottom: 16px;">
+        Compartilhar no Nexa SENAI
+      </h3>
+
+      <form action="{{ url_for('main.create_post') }}" method="POST" enctype="multipart/form-data">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Título da Publicação (Opcional):</label>
+          <input type="text" name="title" class="auth-input-field" placeholder="Ex: Novo projeto prático ou oportunidade...">
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Categoria:</label>
+          <select name="category" class="auth-input-field">
+            <option value="novidades">Novidades da Empresa / Geral</option>
+            <option value="oportunidade">Oportunidade de Vaga / Estágio</option>
+            <option value="projeto">Projeto & Portfólio</option>
+            <option value="certificado">Certificado & Conquista</option>
+            <option value="evento">Evento ou Iniciativa</option>
+          </select>
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Conteúdo da Mensagem *</label>
+          <textarea name="content" rows="5" class="auth-input-field" style="height: auto; padding: 12px;" placeholder="Compartilhe seus projetos, novidades ou informações com a comunidade do SENAI..." required></textarea>
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Imagem ou Banner (Opcional):</label>
+          <input type="file" name="image" class="auth-input-field" accept="image/*" style="padding-top: 8px;">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+          <button type="button" class="btn-senai-outline" onclick="closeModal('create-post-modal')">Cancelar</button>
+          <button type="submit" class="btn-senai">Publicar Agora</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleComments(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Publicar Nova Vaga — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+  <div style="margin-bottom: 18px;">
+    <a href="{{ url_for('company.my_company_profile') }}" style="color: var(--text-secondary); font-size: 14px; font-weight: 600;">
+      <i class="fas fa-arrow-left"></i> Voltar ao Painel da Empresa
+    </a>
+  </div>
+
+  <div class="nexa-card" style="padding: 32px;">
+    <h2 style="font-size: 24px; font-weight: 800; color: var(--senai-red); margin-bottom: 8px;">
+      Publicar Nova Oportunidade
+    </h2>
+    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light);">
+      Cadastre vagas de estágio, jovem aprendiz ou empregos para estudantes e egressos do SENAI.
+    </p>
+
+    <form action="{{ url_for('company.create_job') }}" method="POST">
+      <div class="auth-input-group">
+        <label class="auth-input-label">Título da Vaga *</label>
+        <input type="text" name="title" class="auth-input-field" placeholder="Ex: Estagiário para Técnico em Automação Industrial" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Área de Atuação *</label>
+          <select name="area" class="auth-input-field">
+            <option value="Desenvolvimento de software">Desenvolvimento de software</option>
+            <option value="Automação industrial">Automação industrial</option>
+            <option value="Dados">Dados e Inteligência Artificial</option>
+            <option value="Eletrônica">Eletrônica e Eletrotécnica</option>
+            <option value="Design">Design e UI/UX</option>
+            <option value="Mecânica">Mecânica e Usinagem</option>
+            <option value="Administração">Administração</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Outras áreas">Outras áreas</option>
+          </select>
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Tipo de Contratação *</label>
+          <select name="job_type" class="auth-input-field">
+            <option value="Estágio" selected>Estágio</option>
+            <option value="Emprego efetivo">Emprego efetivo</option>
+            <option value="Jovem aprendiz">Jovem aprendiz</option>
+            <option value="Projeto">Projeto</option>
+            <option value="Freelancer">Freelancer</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Modalidade *</label>
+          <select name="modality" class="auth-input-field">
+            <option value="Presencial">Presencial</option>
+            <option value="Híbrida" selected>Híbrida</option>
+            <option value="Remota">Remota</option>
+          </select>
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Nível de Experiência</label>
+          <select name="experience_level" class="auth-input-field">
+            <option value="Estágio" selected>Estágio</option>
+            <option value="Sem experiência">Sem experiência / Aprendiz</option>
+            <option value="Júnior">Júnior</option>
+            <option value="Pleno">Pleno</option>
+          </select>
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Nº de Vagas</label>
+          <input type="number" name="vacancies" class="auth-input-field" value="1" min="1">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Localização (Cidade - UF) *</label>
+          <input type="text" name="location" class="auth-input-field" value="{{ company.location.split('(')[0].strip() if company else 'São Paulo - SP' }}" required>
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Bolsa Auxílio / Salário (Opcional)</label>
+          <input type="text" name="salary" class="auth-input-field" placeholder="Ex: R$ 2.200,00 ou A combinar">
+        </div>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Descrição Completa da Vaga *</label>
+        <textarea name="description" rows="5" class="auth-input-field" style="height: auto; padding: 12px;" placeholder="Descreva as responsabilidades, o dia a dia e o que o estudante aprenderá..." required></textarea>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Requisitos e Conhecimentos Desejados:</label>
+        <textarea name="requirements" rows="4" class="auth-input-field" style="height: auto; padding: 12px;" placeholder="Cursos do SENAI recomendados, ferramentas técnicas, linguagens ou qualificações..."></textarea>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Benefícios:</label>
+        <textarea name="benefits" rows="2" class="auth-input-field" style="height: auto; padding: 12px;" placeholder="Ex: Vale Transporte, Vale Refeição, Seguro de Vida, Trilha de Capacitação..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+        <a href="{{ url_for('company.my_company_profile') }}" class="btn-senai-outline">Cancelar</a>
+        <button type="submit" class="btn-senai">Publicar Vaga no Nexa SENAI</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

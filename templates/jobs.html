@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Vagas e Oportunidades — Nexa SENAI{% endblock %}
+
+{% block content %}
+<!-- Título Principal da Página (Desktop 1) -->
+<h1 class="page-main-title">Encontre sua próxima grande oportunidade</h1>
+
+<div class="jobs-page-grid">
+  <!-- =========================================================================
+       COLUNA DE FILTROS (ESQUERDA - Desktop 1)
+       ========================================================================= -->
+  <aside class="filters-card">
+    <div class="filters-header">
+      <span class="filters-title">Filtros</span>
+      {% if selected_types or selected_areas or selected_modalities or selected_location or selected_company or selected_experience or query_text %}
+        <a href="{{ url_for('jobs.list_jobs') }}" class="filters-clear-link">Limpar</a>
+      {% endif %}
+    </div>
+
+    <form action="{{ url_for('jobs.list_jobs') }}" method="GET" id="jobs-filter-form">
+      {% if query_text %}
+        <input type="hidden" name="q" value="{{ query_text }}">
+      {% endif %}
+
+      <!-- Tipo de vaga -->
+      <div class="filter-group">
+        <div class="filter-group-title">
+          <span>Tipo de vaga</span>
+          <i class="fas fa-chevron-down" style="font-size: 11px;"></i>
+        </div>
+        {% for t in all_types %}
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="tipo" value="{{ t }}" {% if t in selected_types %}checked{% endif %} onchange="this.form.submit()">
+            <span>{{ t }}</span>
+          </label>
+        {% endfor %}
+      </div>
+
+      <!-- Área de atuação -->
+      <div class="filter-group">
+        <div class="filter-group-title">
+          <span>Área de atuação</span>
+          <i class="fas fa-chevron-down" style="font-size: 11px;"></i>
+        </div>
+        {% for a in all_areas %}
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="area" value="{{ a }}" {% if a in selected_areas %}checked{% endif %} onchange="this.form.submit()">
+            <span>{{ a }}</span>
+          </label>
+        {% endfor %}
+      </div>
+
+      <!-- Modalidade -->
+      <div class="filter-group">
+        <div class="filter-group-title">
+          <span>Modalidade</span>
+          <i class="fas fa-chevron-down" style="font-size: 11px;"></i>
+        </div>
+        {% for m in all_modalities %}
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="modalidade" value="{{ m }}" {% if m in selected_modalities %}checked{% endif %} onchange="this.form.submit()">
+            <span>{{ m }}</span>
+          </label>
+        {% endfor %}
+      </div>
+
+      <!-- Empresa -->
+      <div class="filter-group">
+        <div class="filter-group-title">
+          <span>Empresa</span>
+        </div>
+        <select name="empresa" class="filter-select" onchange="this.form.submit()">
+          <option value="">Todas as empresas</option>
+          {% for comp in all_companies %}
+            <option value="{{ comp.name }}" {% if selected_company == comp.name %}selected{% endif %}>{{ comp.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Nível de experiência -->
+      <div class="filter-group">
+        <div class="filter-group-title">
+          <span>Nível</span>
+        </div>
+        <select name="experiencia" class="filter-select" onchange="this.form.submit()">
+          <option value="">Qualquer nível</option>
+          <option value="Estágio" {% if selected_experience == 'Estágio' %}selected{% endif %}>Estágio</option>
+          <option value="Sem experiência" {% if selected_experience == 'Sem experiência' %}selected{% endif %}>Sem experiência / Aprendiz</option>
+          <option value="Júnior" {% if selected_experience == 'Júnior' %}selected{% endif %}>Júnior</option>
+          <option value="Pleno" {% if selected_experience == 'Pleno' %}selected{% endif %}>Pleno</option>
+        </select>
+      </div>
+
+      <!-- Localização -->
+      <div class="filter-group">
+        <div class="filter-group-title">
+          <span>Localização</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" name="localizacao" value="{{ selected_location }}" placeholder="Ex: São Paulo, Joinville" class="filter-select">
+          <button type="submit" class="btn-senai btn-sm" style="padding: 0 12px;"><i class="fas fa-search"></i></button>
+        </div>
+      </div>
+    </form>
+  </aside>
+
+  <!-- =========================================================================
+       COLUNA DE RESULTADOS DAS VAGAS (DIREITA - Desktop 1)
+       ========================================================================= -->
+  <section class="jobs-results-column">
+    <div class="jobs-results-header">
+      <h2 class="results-count-title">
+        Resultados da Busca
+        <span style="font-size: 14px; font-weight: normal; color: var(--text-secondary); margin-left: 8px;">
+          ({{ jobs|length }} {% if jobs|length == 1 %}vaga encontrada{% else %}vagas encontradas{% endif %})
+        </span>
+      </h2>
+
+      {% if current_user and current_user.role == 'empresa' %}
+        <a href="{{ url_for('company.create_job') }}" class="btn-senai btn-sm">
+          <i class="fas fa-plus"></i> Publicar Nova Vaga
+        </a>
+      {% endif %}
+    </div>
+
+    {% if jobs %}
+      {% for job in jobs %}
+        <!-- Card de Vaga Idêntico ao Layout do Desktop 1 -->
+        <article class="job-item-card">
+          <!-- Thumbnail da Vaga (à esquerda) -->
+          <div class="job-thumb-container">
+            <img src="{{ job.image_url }}" alt="{{ job.title }}" class="job-thumb-img">
+          </div>
+
+          <!-- Informações Centrais da Vaga -->
+          <div class="job-info-details">
+            <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="job-title-link">
+              {{ job.title }}
+            </a>
+            <div class="job-company-row">
+              <i class="far fa-building" style="color: var(--senai-red);"></i>
+              <a href="{{ url_for('company.profile_view', company_id=job.company.id) }}" style="font-weight: 600; color: inherit;">
+                {{ job.company.name }}
+              </a>
+              <span>&bull;</span>
+              <span><i class="fas fa-map-marker-alt" style="font-size: 12px; opacity: 0.7;"></i> {{ job.location }}</span>
+            </div>
+            
+            <div class="job-tags-row">
+              <span class="job-badge-pill red-tint">{{ job.job_type }}</span>
+              <span class="job-badge-pill">{{ job.modality }}</span>
+              <span class="job-badge-pill">{{ job.area }}</span>
+              {% if job.salary %}
+                <span class="job-badge-pill"><i class="fas fa-money-bill-wave" style="color: #2E7D32;"></i> {{ job.salary }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Ações da Vaga (à direita) -->
+          <div class="job-actions-area">
+            {% if current_user and current_user.role == 'aluno' %}
+              <!-- Botão Salvar Favorito -->
+              <button type="button" class="save-job-btn {% if job.id in saved_job_ids %}saved{% endif %}" data-job-id="{{ job.id }}" title="Salvar Vaga">
+                <i class="{% if job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+              </button>
+            {% endif %}
+
+            <!-- Botão Vermelho Oficial "Ver Detalhes" (Desktop 1) -->
+            <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="btn-senai">
+              Ver Detalhes
+            </a>
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <div class="nexa-card" style="text-align: center; padding: 50px 20px;">
+        <i class="fas fa-search" style="font-size: 42px; color: var(--text-muted); margin-bottom: 16px;"></i>
+        <h3 style="font-size: 18px; margin-bottom: 8px;">Nenhuma vaga encontrada com os filtros selecionados</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">Tente remover alguns filtros ou buscar por outros termos.</p>
+        <a href="{{ url_for('jobs.list_jobs') }}" class="btn-senai">Ver Todas as Vagas</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

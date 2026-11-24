@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Painel Administrativo — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 1140px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+      <h1 class="page-main-title" style="text-align: left; margin-bottom: 4px;">
+        <i class="fas fa-shield-alt"></i> Painel de Administração Nexa SENAI
+      </h1>
+      <p style="font-size: 14px; color: var(--text-secondary);">
+        Gestão corporativa de empresas parceiras, alunos, oportunidades e governança do sistema.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <a href="{{ url_for('admin.companies') }}" class="btn-senai">
+        <i class="fas fa-plus-circle"></i> Cadastrar / Autorizar Empresa
+      </a>
+      <a href="{{ url_for('admin.users_list') }}" class="btn-senai-outline">
+        <i class="fas fa-users-cog"></i> Usuários
+      </a>
+    </div>
+  </div>
+
+  <!-- Cards de Estatísticas Gerais (Requisito 6) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px;">
+    <div class="nexa-card" style="padding: 22px; text-align: center; border-left: 4px solid var(--senai-red);">
+      <i class="fas fa-user-graduate" style="font-size: 28px; color: var(--senai-red); margin-bottom: 10px;"></i>
+      <div style="font-size: 32px; font-weight: 900; color: var(--text-primary);">{{ total_students }}</div>
+      <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Alunos Cadastrados</div>
+    </div>
+
+    <div class="nexa-card" style="padding: 22px; text-align: center; border-left: 4px solid #2563EB;">
+      <i class="far fa-building" style="font-size: 28px; color: #2563EB; margin-bottom: 10px;"></i>
+      <div style="font-size: 32px; font-weight: 900; color: var(--text-primary);">{{ total_companies }}</div>
+      <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Empresas Parceiras</div>
+    </div>
+
+    <div class="nexa-card" style="padding: 22px; text-align: center; border-left: 4px solid #16A34A;">
+      <i class="fas fa-briefcase" style="font-size: 28px; color: #16A34A; margin-bottom: 10px;"></i>
+      <div style="font-size: 32px; font-weight: 900; color: var(--text-primary);">{{ total_jobs }}</div>
+      <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Vagas Ativas</div>
+    </div>
+
+    <div class="nexa-card" style="padding: 22px; text-align: center; border-left: 4px solid #F59E0B;">
+      <i class="fas fa-file-signature" style="font-size: 28px; color: #F59E0B; margin-bottom: 10px;"></i>
+      <div style="font-size: 32px; font-weight: 900; color: var(--text-primary);">{{ total_applications }}</div>
+      <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Candidaturas Realizadas</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Empresas Recentes -->
+    <div class="nexa-card" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 17px; font-weight: 800; color: var(--text-primary);">Empresas Cadastradas</h3>
+        <a href="{{ url_for('admin.companies') }}" style="font-size: 13px; color: var(--senai-red); font-weight: 700;">Gerenciar Todas</a>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for comp in recent_companies %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-light);">
+            <div>
+              <strong style="font-size: 14px;">{{ comp.name }}</strong>
+              <div style="font-size: 12px; color: var(--text-secondary);">
+                CNPJ: {{ comp.cnpj }} &bull; Código: <code style="background-color: #F1F5F9; padding: 2px 6px; border-radius: 4px;">{{ comp.access_code }}</code>
+              </div>
+            </div>
+            <span class="job-badge-pill" style="font-size: 11px; {% if comp.is_blocked %}background-color: #FEE2E2; color: #DC2626;{% else %}background-color: #DCFCE7; color: #166534;{% endif %}">
+              {{ 'Bloqueada' if comp.is_blocked else 'Ativa' }}
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Vagas Recentes -->
+    <div class="nexa-card" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 17px; font-weight: 800; color: var(--text-primary);">Últimas Vagas Cadastradas</h3>
+        <a href="{{ url_for('admin.jobs_list') }}" style="font-size: 13px; color: var(--senai-red); font-weight: 700;">Ver Vagas</a>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for job in recent_jobs %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-light);">
+            <div>
+              <strong style="font-size: 14px;">{{ job.title }}</strong>
+              <div style="font-size: 12px; color: var(--text-secondary);">
+                {{ job.company.name }} &bull; {{ job.job_type }} &bull; {{ job.area }}
+              </div>
+            </div>
+            <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="btn-senai-outline btn-sm">Ver</a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

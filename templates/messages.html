@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}Mensagens — Nexa SENAI{% endblock %}
+
+{% block extra_head %}
+<style>
+.messages-container-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  background-color: #FFFFFF;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-sm);
+  min-height: 580px;
+  max-height: 700px;
+  overflow: hidden;
+}
+
+.messages-list-sidebar {
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-list-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.conversations-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conv-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #F3F4F6;
+  transition: var(--transition);
+  text-decoration: none;
+  color: inherit;
+}
+
+.conv-item-btn:hover {
+  background-color: #F8F9FA;
+}
+
+.conv-item-btn.active {
+  background-color: #FEF2F2;
+  border-left: 4px solid var(--senai-red);
+}
+
+.chat-box-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-header-bar {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #FAFAFA;
+}
+
+.chat-messages-scroll {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #F9FAFB;
+}
+
+.chat-bubble-row {
+  display: flex;
+  width: 100%;
+}
+
+.chat-bubble-row.sender {
+  justify-content: flex-end;
+}
+
+.chat-bubble-row.receiver {
+  justify-content: flex-start;
+}
+
+.chat-bubble {
+  max-width: 65%;
+  padding: 10px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.chat-bubble.sender {
+  background-color: var(--senai-red);
+  color: #FFFFFF;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-bubble.receiver {
+  background-color: #FFFFFF;
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-bottom-left-radius: 4px;
+}
+
+.chat-time {
+  display: block;
+  font-size: 10.5px;
+  margin-top: 4px;
+  text-align: right;
+  opacity: 0.8;
+}
+
+.chat-footer-form {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  gap: 12px;
+  background-color: #FFFFFF;
+}
+
+@media (max-width: 768px) {
+  .messages-container-grid {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1080px; margin: 0 auto;">
+  <h1 class="page-main-title" style="text-align: left; margin-bottom: 20px;">
+    Comunicação & Mensagens Profissionais
+  </h1>
+
+  <div class="messages-container-grid">
+    <!-- Coluna Esquerda: Lista de Conversas -->
+    <aside class="messages-list-sidebar">
+      <div class="messages-list-header">
+        <span>Conversas Recentes</span>
+        <i class="far fa-comments" style="color: var(--senai-red);"></i>
+      </div>
+
+      <div class="conversations-scroll-area">
+        {% if conversations %}
+          {% for conv in conversations %}
+            <a href="{{ url_for('messages.inbox', user_id=conv.user.id) }}" class="conv-item-btn {% if active_chat and active_chat.user.id == conv.user.id %}active{% endif %}">
+              <div style="position: relative;">
+                <img src="{{ conv.user.avatar }}" alt="{{ conv.user.display_name }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
+                {% if conv.unread_count > 0 %}
+                  <span class="unread-dot"></span>
+                {% endif %}
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                  <strong style="font-size: 14px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ conv.user.display_name }}
+                  </strong>
+                  {% if conv.last_message %}
+                    <span style="font-size: 11px; color: var(--text-muted);">
+                      {{ conv.last_message.created_at.strftime('%H:%M') }}
+                    </span>
+                  {% endif %}
+                </div>
+                <p style="font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">
+                  {{ conv.last_message.content if conv.last_message else 'Nova conversa' }}
+                </p>
+              </div>
+            </a>
+          {% endfor %}
+        {% else %}
+          <div style="padding: 30px 20px; text-align: center; color: var(--text-muted); font-size: 13.5px;">
+            Nenhuma conversa ativa no momento.
+          </div>
+        {% endif %}
+      </div>
+    </aside>
+
+    <!-- Coluna Direita: Janela de Chat Ativo -->
+    <section class="chat-box-area">
+      {% if active_chat and active_chat.user %}
+        <!-- Barra de Cabeçalho do Chat -->
+        <div class="chat-header-bar">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="{{ active_chat.user.avatar }}" alt="{{ active_chat.user.display_name }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+            <div>
+              <strong style="font-size: 15px; color: var(--text-primary); display: block;">
+                {{ active_chat.user.display_name }}
+              </strong>
+              <span style="font-size: 12px; color: var(--text-secondary);">
+                {% if active_chat.user.role == 'aluno' and active_chat.user.student_profile %}
+                  Aluno &bull; {{ active_chat.user.student_profile.senai_course }}
+                {% elif active_chat.user.role == 'empresa' and active_chat.user.company_profile %}
+                  Empresa &bull; {{ active_chat.user.company_profile.name }}
+                {% else %}
+                  {{ active_chat.user.role.capitalize() }}
+                {% endif %}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            {% if active_chat.user.role == 'aluno' and active_chat.user.student_profile %}
+              <a href="{{ url_for('profile.student_profile', student_id=active_chat.user.student_profile.id) }}" class="btn-senai-outline btn-sm">
+                Ver Perfil
+              </a>
+            {% elif active_chat.user.role == 'empresa' and active_chat.user.company_profile %}
+              <a href="{{ url_for('company.profile_view', company_id=active_chat.user.company_profile.id) }}" class="btn-senai-outline btn-sm">
+                Ver Empresa
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Mensagens do Chat -->
+        <div class="chat-messages-scroll" id="chat-messages-container">
+          {% for msg in active_chat.messages %}
+            <div class="chat-bubble-row {% if msg.sender_id == current_user.id %}sender{% else %}receiver{% endif %}">
+              <div class="chat-bubble {% if msg.sender_id == current_user.id %}sender{% else %}receiver{% endif %}">
+                <p style="margin: 0;">{{ msg.content }}</p>
+                <span class="chat-time">{{ msg.created_at.strftime('%H:%M') }}</span>
+              </div>
+            </div>
+          {% else %}
+            <div style="text-align: center; margin: auto; color: var(--text-muted); font-size: 13.5px;">
+              Inicie a conversa enviando uma mensagem abaixo.
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Formulário de Envio -->
+        <form class="chat-footer-form" id="chat-send-form">
+          <input type="hidden" id="chat-receiver-id" value="{{ active_chat.user.id }}">
+          <input type="text" id="chat-message-input" placeholder="Digite uma mensagem..." class="auth-input-field" style="margin: 0; height: 42px;" autocomplete="off" required>
+          <button type="submit" class="btn-senai" style="padding: 0 20px; height: 42px;">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+      {% else %}
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); padding: 40px; text-align: center;">
+          <i class="far fa-comments" style="font-size: 54px; margin-bottom: 16px; color: #CBD5E1;"></i>
+          <h3 style="font-size: 18px; color: var(--text-primary); margin-bottom: 6px;">Selecione uma conversa</h3>
+          <p style="font-size: 13.5px; max-width: 320px;">
+            Conecte-se e converse com empresas parceiras e colegas do SENAI.
+          </p>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

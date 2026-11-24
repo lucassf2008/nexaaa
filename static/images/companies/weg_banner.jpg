@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 350" width="1200" height="350">
+  <defs>
+    <linearGradient id="ban_#00" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#003366"/>
+      <stop offset="100%" stop-color="#004c99"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="350" fill="url(#ban_#00)"/>
+  <g opacity="0.12">
+    <path d="M0 0 L1200 350 M0 100 L1200 450 M0 200 L1200 550" stroke="#FFFFFF" stroke-width="4"/>
+    <circle cx="200" cy="150" r="100" stroke="#FFFFFF" stroke-width="6" fill="none"/>
+    <circle cx="1000" cy="200" r="140" stroke="#FFFFFF" stroke-width="8" fill="none"/>
+  </g>
+  <text x="60" y="160" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="44" font-weight="900" fill="#FFFFFF">WEG Motores & Automação</text>
+  <text x="60" y="210" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="22" font-weight="500" fill="#EEEEEE">Parceria Histórica de Capacitação Técnica com o SENAI</text>
+</svg>

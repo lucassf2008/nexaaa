@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="200" height="150">
+  <defs>
+    <linearGradient id="job_#5E" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5E35B1"/>
+      <stop offset="100%" stop-color="#311B92"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="150" rx="14" fill="url(#job_#5E)"/>
+  <circle cx="100" cy="65" r="32" fill="#FFFFFF" opacity="0.2"/>
+  <rect x="78" y="45" width="44" height="40" rx="8" fill="#FFFFFF"/>
+  <rect x="85" y="53" width="30" height="6" rx="3" fill="#5E35B1"/>
+  <rect x="85" y="63" width="20" height="4" rx="2" fill="#888888"/>
+  <rect x="85" y="71" width="26" height="4" rx="2" fill="#888888"/>
+  <text x="100" y="125" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Software</text>
+</svg>

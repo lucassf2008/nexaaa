@@ -1,0 +1,150 @@
+/* ==========================================================================
+   NEXA SENAI - RESPONSIVIDADE (Mobile, Tablet, Desktop)
+   ========================================================================== */
+
+/* Telas Grandes e Médias (Desktop Menor / Notebooks) */
+@media (max-width: 1200px) {
+  .red-flank-bar {
+    width: 10px;
+  }
+  .red-flank-bar.left { left: 8px; }
+  .red-flank-bar.right { right: 8px; }
+  .main-stage-wrapper {
+    padding: 0 20px;
+  }
+  .company-profile-layout {
+    grid-template-columns: 380px 1fr;
+  }
+}
+
+/* Tablets e Telas Médias (max-width: 992px) */
+@media (max-width: 992px) {
+  .jobs-page-grid {
+    grid-template-columns: 1fr;
+  }
+  .feed-page-layout {
+    grid-template-columns: 1fr;
+  }
+  .student-profile-layout {
+    grid-template-columns: 1fr;
+  }
+  .company-profile-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-card {
+    margin-bottom: 24px;
+  }
+  
+  .messages-sidebar-card {
+    position: static;
+    margin-top: 24px;
+  }
+  
+  .nav-search {
+    max-width: 280px;
+  }
+}
+
+/* Dispositivos Móveis (Smartphones, max-width: 768px) */
+@media (max-width: 768px) {
+  .nexa-navbar {
+    height: auto;
+    padding: 10px 0;
+  }
+
+  .navbar-inner {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .nav-brand {
+    order: 1;
+  }
+
+  .nav-search {
+    order: 3;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .nav-links {
+    order: 2;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    max-width: 100%;
+  }
+
+  .nav-item-link {
+    font-size: 13px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+
+  /* Em celulares, reduz as barras vermelhas para preservar espaço de tela */
+  .red-flank-bar {
+    width: 6px;
+  }
+  .red-flank-bar.left { left: 4px; }
+  .red-flank-bar.right { right: 4px; }
+  
+  .main-stage-wrapper {
+    padding: 0 12px;
+  }
+
+  .page-main-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .job-item-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .job-thumb-container {
+    width: 100%;
+    height: 140px;
+  }
+
+  .job-actions-area {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .auth-card-box {
+    padding: 24px 20px;
+    margin: 10px;
+  }
+
+  .profile-header-flex {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-contact-meta {
+    justify-content: center;
+  }
+
+  .profile-badges-row {
+    justify-content: center;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .footer-links-list {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .footer-social-block {
+    justify-content: center;
+  }
+}

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Candidatos — {{ job.title }} — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 1040px; margin: 0 auto;">
+  <div style="margin-bottom: 18px;">
+    <a href="{{ url_for('company.profile_view', company_id=job.company.id) }}" style="color: var(--text-secondary); font-size: 14px; font-weight: 600;">
+      <i class="fas fa-arrow-left"></i> Voltar às Vagas da Empresa
+    </a>
+  </div>
+
+  <div class="nexa-card" style="padding: 28px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light);">
+      <div>
+        <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+          Candidatos Inscritos: {{ job.title }}
+        </h1>
+        <span style="font-size: 13.5px; color: var(--text-secondary);">
+          Total de {{ applications|length }} estudante(s) do SENAI candidatado(s)
+        </span>
+      </div>
+
+      <!-- Filtro de Status -->
+      <div style="display: flex; gap: 8px;">
+        <a href="{{ url_for('company.job_candidates', job_id=job.id) }}" class="btn-sm {% if current_status == 'todos' %}btn-senai{% else %}btn-senai-outline{% endif %}">
+          Todos
+        </a>
+        <a href="{{ url_for('company.job_candidates', job_id=job.id, status='recebida') }}" class="btn-sm {% if current_status == 'recebida' %}btn-senai{% else %}btn-senai-outline{% endif %}">
+          Recebidas
+        </a>
+        <a href="{{ url_for('company.job_candidates', job_id=job.id, status='em_analise') }}" class="btn-sm {% if current_status == 'em_analise' %}btn-senai{% else %}btn-senai-outline{% endif %}">
+          Em Análise
+        </a>
+        <a href="{{ url_for('company.job_candidates', job_id=job.id, status='entrevista') }}" class="btn-sm {% if current_status == 'entrevista' %}btn-senai{% else %}btn-senai-outline{% endif %}">
+          Entrevista
+        </a>
+        <a href="{{ url_for('company.job_candidates', job_id=job.id, status='aprovada') }}" class="btn-sm {% if current_status == 'aprovada' %}btn-senai{% else %}btn-senai-outline{% endif %}">
+          Aprovadas
+        </a>
+      </div>
+    </div>
+
+    {% if applications %}
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        {% for app in applications %}
+          <div style="background-color: #FFFFFF; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px;">
+              <div style="display: flex; gap: 16px;">
+                <img src="{{ app.student.avatar_url }}" alt="{{ app.student.full_name }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--senai-red);">
+                <div>
+                  <a href="{{ url_for('profile.student_profile', student_id=app.student.id) }}" style="font-size: 17px; font-weight: 700; color: var(--text-primary);" target="_blank">
+                    {{ app.student.full_name }} <i class="fas fa-external-link-alt" style="font-size: 11px; color: var(--senai-red);"></i>
+                  </a>
+                  <div style="font-size: 13px; color: var(--text-secondary); margin: 2px 0;">
+                    {{ app.student.senai_course }} &bull; {{ app.student.city }} - {{ app.student.state }}
+                  </div>
+                  <div style="font-size: 12px; color: var(--text-muted);">
+                    <i class="far fa-envelope"></i> {{ app.student.user.email }} &bull; <i class="fas fa-phone-alt"></i> {{ app.student.phone or 'Não informado' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status Atual -->
+              <div>
+                <span class="job-badge-pill" style="font-weight: 700; text-transform: uppercase; padding: 6px 14px;
+                  {% if app.status == 'aprovada' %}background-color: #DCFCE7; color: #166534;
+                  {% elif app.status == 'entrevista' %}background-color: #FEF3C7; color: #92400E;
+                  {% elif app.status == 'rejeitada' %}background-color: #FEE2E2; color: #991B1B;
+                  {% else %}background-color: #EFF6FF; color: #1E40AF;{% endif %}">
+                  {{ app.status }}
+                </span>
+              </div>
+            </div>
+
+            {% if app.notes %}
+              <div style="background-color: #F8F9FA; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; color: #374151; margin-bottom: 14px; border-left: 3px solid var(--border-light);">
+                <strong>Mensagem do Candidato / Anotações:</strong> {{ app.notes }}
+              </div>
+            {% endif %}
+
+            <!-- Formulário para Atualizar Status da Candidatura -->
+            <form action="{{ url_for('company.update_application_status', app_id=app.id) }}" method="POST" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed var(--border-light);">
+              <span style="font-size: 12.5px; font-weight: 700; color: var(--text-secondary);">Alterar Status:</span>
+              <select name="status" class="filter-select" style="width: auto; padding: 4px 10px; font-size: 13px;">
+                <option value="recebida" {% if app.status == 'recebida' %}selected{% endif %}>Recebida</option>
+                <option value="em_analise" {% if app.status == 'em_analise' %}selected{% endif %}>Em Análise</option>
+                <option value="entrevista" {% if app.status == 'entrevista' %}selected{% endif %}>Convocar Entrevista</option>
+                <option value="aprovada" {% if app.status == 'aprovada' %}selected{% endif %}>Aprovada</option>
+                <option value="rejeitada" {% if app.status == 'rejeitada' %}selected{% endif %}>Rejeitada</option>
+              </select>
+
+              <input type="text" name="notes" placeholder="Feedback para o aluno (ex: entrevista agendada)..." class="filter-select" style="flex: 1; padding: 4px 10px; font-size: 13px;">
+
+              <button type="submit" class="btn-senai btn-sm">Atualizar</button>
+              
+              <a href="{{ url_for('messages.inbox', user_id=app.student.user.id) }}" class="btn-senai-outline btn-sm">
+                <i class="far fa-comment-dots"></i> Conversar
+              </a>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+        <i class="far fa-user" style="font-size: 36px; color: var(--text-muted); margin-bottom: 10px;"></i>
+        <p>Nenhuma candidatura encontrada para este filtro.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

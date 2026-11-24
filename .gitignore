@@ -1,0 +1,41 @@
+<<<<<<< HEAD
+
+# Python
+=======
+# Byte-compiled / optimized / DLL files
+>>>>>>> c921344d837277a4befe010a60de26c54ab33698
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches
+.pytest_cache/
+
+# Ambientes virtuais
+<<<<<<< HEAD
+.venv/
+=======
+>>>>>>> c921344d837277a4befe010a60de26c54ab33698
+venv/
+env/
+ENV/
+
+<<<<<<< HEAD
+# Banco de dados local
+*.db
+*.sqlite
+*.sqlite3
+
+# Variáveis de ambiente e segredos
+.env
+.env.*
+
+=======
+>>>>>>> c921344d837277a4befe010a60de26c54ab33698
+# IDEs
+.vscode/
+.idea/
+
+# Sistema
+Thumbs.db
+Desktop.ini

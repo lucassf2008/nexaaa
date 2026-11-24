@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Nexa SENAI — Plataforma de Conexão Profissional{% endblock %}</title>
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Estilos Oficiais Nexa SENAI -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- =========================================================================
+       NAVBAR HORIZONTAL SUPERIOR (Desktop 1-5)
+       ========================================================================= -->
+  <nav class="nexa-navbar">
+    <div class="navbar-inner">
+      <!-- Logo Nexa SENAI Oficial -->
+      <a href="{{ url_for('main.feed') }}" class="nav-brand" title="Nexa SENAI - Início">
+        <img src="{{ url_for('static', filename='images/logo_nexa_white.png') }}" alt="Nexa SENAI" class="brand-logo-img">
+      </a>
+
+      <!-- Barra de Pesquisa Central na Navbar -->
+      <div class="nav-search">
+        <form action="{{ url_for('main.search') }}" method="GET" class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input type="text" name="q" class="nav-search-input" placeholder="Buscar vagas, pessoas ou empresas..." value="{{ request.args.get('q', '') }}">
+        </form>
+      </div>
+
+      <!-- Links de Navegação e Menus -->
+      <ul class="nav-links">
+        <li>
+          <a href="{{ url_for('main.feed') }}" class="nav-item-link {% if request.endpoint == 'main.feed' %}active{% endif %}">
+            Início
+          </a>
+        </li>
+        {% if current_user %}
+          {% if current_user.role == 'aluno' %}
+            <li>
+              <a href="{{ url_for('profile.my_student_profile') }}" class="nav-item-link {% if 'profile.student' in (request.endpoint or '') %}active{% endif %}">
+                Perfil do Aluno
+              </a>
+            </li>
+          {% elif current_user.role == 'empresa' %}
+            <li>
+              <a href="{{ url_for('company.my_company_profile') }}" class="nav-item-link {% if 'company.' in (request.endpoint or '') and 'candidates' not in (request.endpoint or '') %}active{% endif %}">
+                Perfil da Empresa
+              </a>
+            </li>
+          {% elif current_user.role == 'admin' %}
+            <li>
+              <a href="{{ url_for('admin.dashboard') }}" class="nav-item-link {% if 'admin.' in (request.endpoint or '') %}active{% endif %}">
+                Painel Admin
+              </a>
+            </li>
+          {% endif %}
+        {% endif %}
+        <li>
+          <a href="{{ url_for('jobs.list_jobs') }}" class="nav-item-link {% if request.endpoint == 'jobs.list_jobs' %}active{% endif %}">
+            Vagas
+          </a>
+        </li>
+
+        {% if current_user %}
+          <!-- Ícone de Mensagens com Badge -->
+          <li>
+            <a href="{{ url_for('messages.inbox') }}" class="nav-item-link nav-badge-icon" title="Mensagens">
+              <i class="far fa-comment-dots fa-lg"></i>
+              {% if unread_msgs_count > 0 %}
+                <span class="badge-count">{{ unread_msgs_count }}</span>
+              {% endif %}
+            </a>
+          </li>
+
+          <!-- Dropdown do Usuário -->
+          <li class="nav-user-dropdown">
+            <button class="user-profile-btn" type="button">
+              <img src="{{ current_user.avatar }}" alt="{{ current_user.display_name }}" class="nav-avatar-mini">
+              <i class="fas fa-chevron-down" style="font-size: 11px; opacity: 0.7;"></i>
+            </button>
+            <div class="dropdown-menu-content">
+              <div style="padding: 10px 16px; border-bottom: 1px solid #ECEEF2;">
+                <strong style="display: block; font-size: 14px;">{{ current_user.display_name }}</strong>
+                <span style="font-size: 11.5px; color: #6B7280; text-transform: capitalize;">{{ current_user.role }}</span>
+              </div>
+
+              {% if current_user.role == 'aluno' %}
+                <a href="{{ url_for('profile.student_profile', student_id=current_user.student_profile.id) }}" class="dropdown-item">
+                  <i class="far fa-user"></i> Meu Perfil
+                </a>
+                <a href="{{ url_for('jobs.my_applications') }}" class="dropdown-item">
+                  <i class="fas fa-briefcase"></i> Minhas Candidaturas
+                </a>
+                <a href="{{ url_for('profile.edit_student_profile') }}" class="dropdown-item">
+                  <i class="fas fa-user-edit"></i> Editar Perfil
+                </a>
+              {% elif current_user.role == 'empresa' %}
+                <a href="{{ url_for('company.profile_view', company_id=current_user.company_profile.id) }}" class="dropdown-item">
+                  <i class="far fa-building"></i> Painel da Empresa
+                </a>
+                <a href="{{ url_for('company.create_job') }}" class="dropdown-item">
+                  <i class="fas fa-plus-circle"></i> Publicar Vaga
+                </a>
+                <a href="{{ url_for('company.edit_profile') }}" class="dropdown-item">
+                  <i class="fas fa-cog"></i> Configurar Empresa
+                </a>
+              {% elif current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}" class="dropdown-item" style="color: var(--senai-red); font-weight: 700;">
+                  <i class="fas fa-shield-alt"></i> Painel Administrativo
+                </a>
+              {% endif %}
+
+              <div class="dropdown-divider"></div>
+              <a href="{{ url_for('auth.logout') }}" class="dropdown-item" style="color: #DC2626;">
+                <i class="fas fa-sign-out-alt"></i> Sair da Conta
+              </a>
+            </div>
+          </li>
+        {% else %}
+          <li>
+            <a href="{{ url_for('auth.login') }}" class="btn-senai btn-sm">
+              <i class="fas fa-sign-in-alt"></i> Entrar
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <!-- =========================================================================
+       CONTAINER COM AS BARRAS VERMELHAS LATERAIS (Identidade Visual SENAI)
+       ========================================================================= -->
+  <div class="nexa-layout-container">
+    <!-- Barra vertical vermelha esquerda -->
+    <div class="red-flank-bar left"></div>
+
+    <!-- Área de Conteúdo Central -->
+    <main class="main-stage-wrapper">
+      <!-- Mensagens Flash -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-container">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                <span>{{ message }}</span>
+                <button type="button" class="alert-close-btn">&times;</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <!-- Conteúdo específico de cada página -->
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Barra vertical vermelha direita -->
+    <div class="red-flank-bar right"></div>
+  </div>
+
+  <!-- =========================================================================
+       RODAPÉ (Dark Footer)
+       ========================================================================= -->
+  <footer class="nexa-footer">
+    <div class="footer-inner">
+      <ul class="footer-links-list">
+        <li><a href="#" class="footer-link">Termos de Uso</a></li>
+        <li><a href="#" class="footer-link">Política de Privacidade</a></li>
+        <li><a href="#" class="footer-link">Ajuda/FAQ</a></li>
+        <li><a href="#" class="footer-link">Contato</a></li>
+        {% if not current_user or current_user.role != 'admin' %}
+          <li><a href="{{ url_for('auth.login', tab='admin') }}" class="footer-link" style="opacity: 0.5;">Administração</a></li>
+        {% endif %}
+      </ul>
+
+      <div class="footer-social-block">
+        <span>Siga-nos:</span>
+        <a href="https://facebook.com" target="_blank" class="footer-social-icon" title="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://instagram.com" target="_blank" class="footer-social-icon" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://twitter.com" target="_blank" class="footer-social-icon" title="X (Twitter)">
+          <i class="fab fa-x-twitter"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/validators.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.full_name }} — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div class="student-profile-layout">
+  <!-- =========================================================================
+       COLUNA PRINCIPAL: INFORMAÇÕES DO PERFIL (Desktop 1 - Inferior Esquerdo)
+       ========================================================================= -->
+  <section class="profile-main-column">
+    <!-- Card Principal do Cabeçalho do Perfil -->
+    <div class="profile-main-card">
+      <div class="profile-header-flex">
+        <img src="{{ student.avatar_url }}" alt="{{ student.full_name }}" class="profile-avatar-large">
+
+        <div style="flex: 1;">
+          <h1 class="profile-name-bold">{{ student.full_name }}</h1>
+          
+          <div class="profile-contact-meta">
+            <span><i class="far fa-envelope"></i> {{ student.user.email }}</span>
+            {% if student.phone %}
+              <span>&bull;</span>
+              <span><i class="fas fa-phone-alt"></i> {{ student.phone }}</span>
+            {% endif %}
+            <span>&bull;</span>
+            <span><i class="fas fa-map-marker-alt"></i> {{ student.city }} - {{ student.state }}</span>
+          </div>
+
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500;">
+            {{ student.headline }}
+          </p>
+
+          <div class="profile-badges-row">
+            <span class="connections-badge-link">
+              <i class="fas fa-user-friends" style="color: var(--senai-red);"></i>
+              <strong>{{ student.connections_count }}+</strong> Conexões
+            </span>
+            <span class="job-badge-pill red-tint">{{ student.senai_course }}</span>
+            <span class="job-badge-pill">{{ student.course_status }}</span>
+          </div>
+        </div>
+
+        <!-- Botões de Ação do Perfil (Desktop 1) -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          {% if is_owner %}
+            <a href="{{ url_for('profile.edit_student_profile') }}" class="btn-senai">
+              <i class="fas fa-user-edit"></i> Editar Perfil
+            </a>
+          {% else %}
+            {% if current_user %}
+              <a href="{{ url_for('messages.inbox', user_id=student.user.id) }}" class="btn-senai">
+                <i class="far fa-comment-dots"></i> Enviar Mensagem
+              </a>
+              {% if connection_status == 'aceita' %}
+                <span class="btn-senai-outline btn-sm" style="text-align: center;">Conectado</span>
+              {% else %}
+                <form action="{{ url_for('main.send_connection_request', target_user_id=student.user.id) }}" method="POST">
+                  <button type="submit" class="btn-senai-outline btn-block">
+                    + Conectar
+                  </button>
+                </form>
+              {% endif %}
+            {% else %}
+              <a href="{{ url_for('auth.login') }}" class="btn-senai">
+                + Conectar
+              </a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção: Sobre Mim (Desktop 1) -->
+    <div class="profile-section-card">
+      <div class="section-title-with-icon">
+        <div class="section-icon-badge">
+          <i class="fas fa-award"></i>
+        </div>
+        <span>Sobre Mim</span>
+      </div>
+
+      <div class="profile-about-text">
+        {{ student.about_me or 'Estudante dedicado do ecossistema SENAI em busca de oportunidades de crescimento e conexão profissional.' }}
+      </div>
+    </div>
+
+    <!-- Seção: Experiências (Desktop 1) -->
+    <div class="profile-section-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div class="section-title-with-icon" style="margin-bottom: 0;">
+          <div class="section-icon-badge">
+            <i class="fas fa-globe"></i>
+          </div>
+          <span>Experiências</span>
+        </div>
+        {% if is_owner %}
+          <button type="button" class="btn-senai-outline btn-sm" onclick="openModal('add-experience-modal')">
+            <i class="fas fa-plus"></i> Adicionar
+          </button>
+        {% endif %}
+      </div>
+
+      {% if student.experiences.count() > 0 %}
+        <div>
+          {% for exp in student.experiences %}
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <div class="timeline-role">{{ exp.role }}</div>
+                  <div class="timeline-company">{{ exp.company }}</div>
+                  <div class="timeline-period">{{ exp.period }}</div>
+                  {% if exp.description %}
+                    <p class="timeline-desc">{{ exp.description }}</p>
+                  {% endif %}
+                </div>
+                {% if is_owner %}
+                  <form action="{{ url_for('profile.delete_experience', exp_id=exp.id) }}" method="POST" onsubmit="return confirm('Remover esta experiência?');">
+                    <button type="submit" style="background: none; border: none; color: #DC2626; cursor: pointer; font-size: 13px;" title="Remover">
+                      <i class="far fa-trash-alt"></i>
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="font-size: 14px; color: var(--text-secondary);">Nenhuma experiência profissional cadastrada ainda.</p>
+      {% endif %}
+    </div>
+
+    <!-- Seção: Competências e Habilidades -->
+    <div class="profile-section-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div class="section-title-with-icon" style="margin-bottom: 0;">
+          <div class="section-icon-badge">
+            <i class="fas fa-tools"></i>
+          </div>
+          <span>Competências & Habilidades Técnicas</span>
+        </div>
+        {% if is_owner %}
+          <button type="button" class="btn-senai-outline btn-sm" onclick="openModal('add-skill-modal')">
+            <i class="fas fa-plus"></i> Adicionar
+          </button>
+        {% endif %}
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        {% for skill in student.skills %}
+          <div style="background-color: #F3F4F6; border: 1px solid #E5E7EB; border-radius: var(--radius-pill); padding: 6px 14px; font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <span>{{ skill.name }}</span>
+            <span style="font-size: 10.5px; color: var(--senai-red); font-weight: 700;">({{ skill.level }})</span>
+            {% if is_owner %}
+              <form action="{{ url_for('profile.delete_skill', skill_id=skill.id) }}" method="POST" style="display: inline;">
+                <button type="submit" style="background: none; border: none; color: #9CA3AF; cursor: pointer; padding: 0;" title="Remover">&times;</button>
+              </form>
+            {% endif %}
+          </div>
+        {% else %}
+          <p style="font-size: 14px; color: var(--text-secondary);">Nenhuma competência adicionada ainda.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Seção: Projetos Práticos -->
+    <div class="profile-section-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div class="section-title-with-icon" style="margin-bottom: 0;">
+          <div class="section-icon-badge">
+            <i class="fas fa-project-diagram"></i>
+          </div>
+          <span>Projetos & Portfólio</span>
+        </div>
+        {% if is_owner %}
+          <button type="button" class="btn-senai-outline btn-sm" onclick="openModal('add-project-modal')">
+            <i class="fas fa-plus"></i> Adicionar Projeto
+          </button>
+        {% endif %}
+      </div>
+
+      {% if student.projects.count() > 0 %}
+        {% for proj in student.projects %}
+          <div style="border-bottom: 1px solid var(--border-light); padding-bottom: 14px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">{{ proj.title }}</h4>
+                <p style="font-size: 13.5px; color: #4B5563; margin: 4px 0 8px;">{{ proj.description }}</p>
+                {% if proj.technologies %}
+                  <div style="font-size: 12px; color: var(--senai-red); font-weight: 600;">
+                    Tecnologias: {{ proj.technologies }}
+                  </div>
+                {% endif %}
+                {% if proj.link_url %}
+                  <a href="{{ proj.link_url }}" target="_blank" style="font-size: 12.5px; color: #2563EB; text-decoration: underline; margin-top: 4px; display: inline-block;">
+                    <i class="fas fa-external-link-alt"></i> Ver Projeto
+                  </a>
+                {% endif %}
+              </div>
+              {% if is_owner %}
+                <form action="{{ url_for('profile.delete_project', proj_id=proj.id) }}" method="POST">
+                  <button type="submit" style="background: none; border: none; color: #DC2626; cursor: pointer; font-size: 13px;">
+                    <i class="far fa-trash-alt"></i>
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p style="font-size: 14px; color: var(--text-secondary);">Nenhum projeto cadastrado.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       COLUNA LATERAL: NOVAS MENSAGENS (Desktop 1 - Inferior Direito)
+       ========================================================================= -->
+  <aside class="profile-sidebar-column">
+    <div class="messages-sidebar-card">
+      <div class="messages-sidebar-header">
+        <h3 class="messages-sidebar-title">Novas Mensagens</h3>
+        <a href="{{ url_for('messages.inbox') }}" style="font-size: 12px; color: var(--senai-red); font-weight: 700;">
+          Ver Todas
+        </a>
+      </div>
+
+      <!-- Lista de Conversas Recentes (Desktop 1) -->
+      {% if recent_messages %}
+        {% for chat in recent_messages %}
+          <a href="{{ url_for('messages.inbox', user_id=chat.user.id) }}" class="sidebar-chat-item">
+            <div class="chat-avatar-wrap">
+              <img src="{{ chat.user.avatar }}" alt="{{ chat.user.display_name }}" class="chat-avatar-mini">
+              {% if chat.is_unread %}
+                <span class="unread-dot"></span>
+              {% endif %}
+            </div>
+            <div class="chat-preview-col">
+              <div class="chat-preview-name">
+                <span>{{ chat.user.display_name }}</span>
+                <span class="chat-preview-time">{{ chat.time }}</span>
+              </div>
+              <p class="chat-preview-snippet">{{ chat.last_message }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      {% endif %}
+
+      {% if suggested_contacts %}
+        {% for sc in suggested_contacts %}
+          <a href="{{ url_for('messages.inbox', user_id=sc.user.id) }}" class="sidebar-chat-item">
+            <div class="chat-avatar-wrap">
+              <img src="{{ sc.user.avatar }}" alt="{{ sc.user.display_name }}" class="chat-avatar-mini">
+            </div>
+            <div class="chat-preview-col">
+              <div class="chat-preview-name">
+                <span>{{ sc.user.display_name }}</span>
+                <span class="chat-preview-time">{{ sc.time }}</span>
+              </div>
+              <p class="chat-preview-snippet">{{ sc.last_message }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      {% endif %}
+
+      <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-light); text-align: center;">
+        <a href="{{ url_for('messages.inbox') }}" class="btn-senai-outline btn-sm btn-block">
+          <i class="far fa-paper-plane"></i> Iniciar Nova Mensagem
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Modais para Adicionar Itens ao Perfil -->
+{% if is_owner %}
+  <!-- Modal Experiência -->
+  <div class="modal-overlay" id="add-experience-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" onclick="closeModal('add-experience-modal')">&times;</button>
+      <h3 style="font-size: 18px; font-weight: 800; color: var(--senai-red); margin-bottom: 16px;">Adicionar Experiência Profissional</h3>
+      <form action="{{ url_for('profile.add_experience') }}" method="POST">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Empresa / Instituição *</label>
+          <input type="text" name="company" class="auth-input-field" placeholder="Ex: WEG, Bosch, SENAI..." required>
+        </div>
+        <div class="auth-input-group">
+          <label class="auth-input-label">Cargo / Função *</label>
+          <input type="text" name="role" class="auth-input-field" placeholder="Ex: Estagiário de Automação, Desenvolvedor Jr..." required>
+        </div>
+        <div class="auth-input-group">
+          <label class="auth-input-label">Período *</label>
+          <input type="text" name="period" class="auth-input-field" placeholder="Ex: Jan 2023 - Dez 2023 ou Jan 2024 - Atual" required>
+        </div>
+        <div class="auth-input-group">
+          <label class="auth-input-label">Descrição das Atividades:</label>
+          <textarea name="description" rows="3" class="auth-input-field" style="height: auto; padding: 10px;" placeholder="Principais realizações e ferramentas utilizadas..."></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button type="button" class="btn-senai-outline" onclick="closeModal('add-experience-modal')">Cancelar</button>
+          <button type="submit" class="btn-senai">Salvar Experiência</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Competência -->
+  <div class="modal-overlay" id="add-skill-modal">
+    <div class="modal-box" style="max-width: 480px;">
+      <button type="button" class="modal-close-btn" onclick="closeModal('add-skill-modal')">&times;</button>
+      <h3 style="font-size: 18px; font-weight: 800; color: var(--senai-red); margin-bottom: 16px;">Adicionar Competência</h3>
+      <form action="{{ url_for('profile.add_skill') }}" method="POST">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Competência / Habilidade *</label>
+          <input type="text" name="name" class="auth-input-field" placeholder="Ex: Python, CLP Siemens, AutoCAD, SQL..." required>
+        </div>
+        <div class="auth-input-group">
+          <label class="auth-input-label">Nível de Domínio:</label>
+          <select name="level" class="auth-input-field">
+            <option value="Básico">Básico</option>
+            <option value="Intermediário" selected>Intermediário</option>
+            <option value="Avançado">Avançado</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button type="button" class="btn-senai-outline" onclick="closeModal('add-skill-modal')">Cancelar</button>
+          <button type="submit" class="btn-senai">Adicionar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Projeto -->
+  <div class="modal-overlay" id="add-project-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" onclick="closeModal('add-project-modal')">&times;</button>
+      <h3 style="font-size: 18px; font-weight: 800; color: var(--senai-red); margin-bottom: 16px;">Adicionar Projeto ou Portfólio</h3>
+      <form action="{{ url_for('profile.add_project') }}" method="POST">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Título do Projeto *</label>
+          <input type="text" name="title" class="auth-input-field" placeholder="Ex: Sistema de Monitoramento IoT de Temperatura" required>
+        </div>
+        <div class="auth-input-group">
+          <label class="auth-input-label">Tecnologias Utilizadas:</label>
+          <input type="text" name="technologies" class="auth-input-field" placeholder="Ex: Arduino, ESP32, Python, Flask, MQTT">
+        </div>
+        <div class="auth-input-group">
+          <label class="auth-input-label">Link Externo (GitHub, LinkedIn ou Demo):</label>
+          <input type="url" name="link_url" class="auth-input-field" placeholder="https://github.com/seu-usuario/projeto">
+        </div>
+        <div class="auth-input-group">
+          <label class="auth-input-label">Descrição do Projeto:</label>
+          <textarea name="description" rows="3" class="auth-input-field" style="height: auto; padding: 10px;" placeholder="Qual problema o projeto resolveu e como foi desenvolvido no SENAI..."></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button type="button" class="btn-senai-outline" onclick="closeModal('add-project-modal')">Cancelar</button>
+          <button type="submit" class="btn-senai">Salvar Projeto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

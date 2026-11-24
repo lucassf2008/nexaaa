@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Minhas Candidaturas — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 980px; margin: 0 auto;">
+  <h1 class="page-main-title" style="text-align: left; margin-bottom: 20px;">
+    Minhas Candidaturas & Vagas Salvas
+  </h1>
+
+  <div class="nexa-card" style="padding: 28px; margin-bottom: 28px;">
+    <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border-light);">
+      Histórico de Candidaturas ({{ applications|length }})
+    </h2>
+
+    {% if applications %}
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        {% for app in applications %}
+          <div style="background-color: #FFFFFF; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <img src="{{ app.job.company.logo_url }}" alt="{{ app.job.company.name }}" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-light);">
+              <div>
+                <a href="{{ url_for('jobs.job_detail', job_id=app.job.id) }}" style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                  {{ app.job.title }}
+                </a>
+                <div style="font-size: 13px; color: var(--text-secondary); margin: 2px 0;">
+                  <strong style="color: var(--senai-red);">{{ app.job.company.name }}</strong> &bull; {{ app.job.location }} &bull; {{ app.job.job_type }}
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted);">
+                  Candidatou-se em {{ app.created_at.strftime('%d/%m/%Y às %H:%M') }}
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: right;">
+              <span class="job-badge-pill" style="font-weight: 700; text-transform: uppercase; padding: 6px 14px;
+                {% if app.status == 'aprovada' %}background-color: #DCFCE7; color: #166534;
+                {% elif app.status == 'entrevista' %}background-color: #FEF3C7; color: #92400E;
+                {% elif app.status == 'rejeitada' %}background-color: #FEE2E2; color: #991B1B;
+                {% else %}background-color: #EFF6FF; color: #1E40AF;{% endif %}">
+                Status: {{ app.status }}
+              </span>
+              {% if app.notes %}
+                <div style="font-size: 12px; color: #374151; margin-top: 6px; max-width: 280px; text-align: right;">
+                  <em>"{{ app.notes }}"</em>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 36px; color: var(--text-secondary);">
+        <i class="far fa-paper-plane" style="font-size: 36px; color: var(--text-muted); margin-bottom: 10px;"></i>
+        <p>Você ainda não se candidatou a nenhuma vaga.</p>
+        <a href="{{ url_for('jobs.list_jobs') }}" class="btn-senai btn-sm" style="margin-top: 10px;">Explorar Oportunidades</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Vagas Salvas -->
+  <div class="nexa-card" style="padding: 28px;">
+    <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border-light);">
+      Vagas Salvas nos Favoritos ({{ saved_jobs|length }})
+    </h2>
+
+    {% if saved_jobs %}
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        {% for job in saved_jobs %}
+          <div style="background-color: #FFFFFF; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <img src="{{ job.company.logo_url }}" alt="{{ job.company.name }}" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover;">
+              <div>
+                <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" style="font-size: 15px; font-weight: 700; color: var(--text-primary);">
+                  {{ job.title }}
+                </a>
+                <div style="font-size: 12.5px; color: var(--text-secondary);">
+                  {{ job.company.name }} &bull; {{ job.location }} &bull; {{ job.job_type }}
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="btn-senai btn-sm">Ver Detalhes</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="font-size: 14px; color: var(--text-secondary);">Você não possui vagas salvas no momento.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

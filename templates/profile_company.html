@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ company.name }} — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div class="company-profile-layout">
+  <!-- =========================================================================
+       COLUNA ESQUERDA: PERFIL DA EMPRESA (Desktop 4)
+       ========================================================================= -->
+  <aside class="company-info-card">
+    <!-- Banner da Empresa -->
+    <div class="company-banner-wrap">
+      <img src="{{ company.banner_url }}" alt="{{ company.name }}" class="company-banner-img">
+    </div>
+
+    <!-- Corpo do Card da Empresa -->
+    <div class="company-card-body">
+      <!-- Logo Sobreposto -->
+      <img src="{{ company.logo_url }}" alt="{{ company.name }}" class="company-logo-overlap">
+
+      <h1 class="company-name-title">{{ company.name }}</h1>
+      <span class="company-email-link"><i class="far fa-envelope"></i> {{ company.contact_email or company.user.email }}</span>
+
+      <!-- Seção Sobre a Empresa (Desktop 4) -->
+      <div class="company-meta-section">
+        <h4 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px;">
+          Sobre a {{ company.name.split()[0] }}
+        </h4>
+
+        <div class="company-meta-item">
+          <span class="company-meta-label">Setor:</span><br>
+          <span>{{ company.sector }}</span>
+        </div>
+
+        <div class="company-meta-item">
+          <span class="company-meta-label">Localização:</span><br>
+          <span>{{ company.location }}</span>
+        </div>
+
+        <div class="company-meta-item">
+          <span class="company-meta-label">Número de Funcionários:</span><br>
+          <span>{{ company.employee_count }}</span>
+        </div>
+
+        {% if company.website %}
+          <div class="company-meta-item">
+            <span class="company-meta-label">Website:</span><br>
+            <a href="{{ company.website }}" target="_blank" style="color: #2563EB; text-decoration: underline;">
+              {{ company.website }}
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Botão Seguir / Ações da Empresa (Desktop 4) -->
+      <div style="margin: 18px 0;">
+        {% if is_owner %}
+          <div style="display: flex; gap: 8px;">
+            <a href="{{ url_for('company.edit_profile') }}" class="btn-senai btn-block">
+              <i class="fas fa-edit"></i> Editar Perfil da Empresa
+            </a>
+          </div>
+        {% else %}
+          {% if current_user %}
+            <button type="button" class="btn-senai btn-block btn-follow-ajax" data-company-id="{{ company.id }}">
+              {% if is_following %}Seguindo{% else %}Seguir{% endif %}
+            </button>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn-senai btn-block">
+              Seguir
+            </a>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Nossas Redes (Desktop 4) -->
+      <div style="border-top: 1px solid var(--border-light); padding-top: 14px;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--text-primary);">Nossas Redes:</span>
+        <div class="social-icons-row">
+          <a href="{{ company.facebook or 'https://facebook.com' }}" target="_blank" class="social-icon-circle" title="Facebook">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="{{ company.instagram or 'https://instagram.com' }}" target="_blank" class="social-icon-circle" title="Instagram">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="{{ company.twitter or 'https://twitter.com' }}" target="_blank" class="social-icon-circle" title="X (Twitter)">
+            <i class="fab fa-x-twitter"></i>
+          </a>
+          <a href="{{ company.linkedin or 'https://linkedin.com' }}" target="_blank" class="social-icon-circle" title="LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       COLUNA DIREITA: VAGAS PUBLICADAS (Desktop 4)
+       ========================================================================= -->
+  <section class="company-jobs-column">
+    <h2 class="company-jobs-title">Vagas Publicadas</h2>
+
+    {% if jobs %}
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        {% for job in jobs %}
+          <div style="background-color: #FFFFFF; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <img src="{{ job.image_url }}" alt="{{ job.title }}" style="width: 54px; height: 54px; border-radius: 10px; object-fit: cover;">
+              <div>
+                <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" style="font-size: 15px; font-weight: 700; color: var(--text-primary); display: block;">
+                  {{ job.title }}
+                </a>
+                <span style="font-size: 12.5px; color: var(--text-secondary);">
+                  {{ job.location }} &bull; {{ job.job_type }} &bull; {{ job.modality }}
+                </span>
+                <div style="font-size: 11.5px; color: #16A34A; font-weight: 600; margin-top: 2px;">
+                  {{ job.applications.count() }} candidatura(s) recebida(s)
+                </div>
+              </div>
+            </div>
+
+            <div>
+              {% if is_owner or (current_user and current_user.role == 'admin') %}
+                <a href="{{ url_for('company.job_candidates', job_id=job.id) }}" class="btn-senai btn-sm">
+                  Ver Candidatos
+                </a>
+              {% else %}
+                <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="btn-senai btn-sm">
+                  Ver Vaga
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+        <i class="far fa-folder-open" style="font-size: 38px; color: var(--text-muted); margin-bottom: 10px;"></i>
+        <p>Nenhuma vaga publicada no momento por esta empresa parceira.</p>
+      </div>
+    {% endif %}
+
+    <!-- Botão Oficial "Criar nova vaga" (Desktop 4) -->
+    {% if is_owner or (current_user and current_user.role == 'admin') %}
+      <div style="margin-top: 28px; text-align: center;">
+        <a href="{{ url_for('company.create_job') }}" class="btn-senai" style="padding: 12px 32px; font-size: 15px;">
+          <i class="fas fa-plus"></i> Criar nova vaga
+        </a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

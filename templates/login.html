@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Login — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div class="auth-stage-wrapper">
+  <!-- Card de Login Centralizado Idêntico ao Layout do Desktop 2 -->
+  <div class="auth-card-box">
+    <!-- Logo Nexa SENAI no topo do card -->
+    <div style="text-align: center; margin-bottom: 8px;">
+      <img src="{{ url_for('static', filename='images/logo_nexa_red.png') }}" alt="Nexa SENAI" class="auth-card-logo">
+    </div>
+
+    <!-- Título Vermelho "Login" -->
+    <h2 class="auth-card-title">Login</h2>
+
+    <!-- Abas para alternar entre Aluno, Empresa e Administrador -->
+    <div class="auth-tabs-nav">
+      <button type="button" class="auth-tab-btn {% if active_tab == 'aluno' %}active{% endif %}" onclick="switchAuthTab('aluno')">
+        Aluno / Ex-Aluno
+      </button>
+      <button type="button" class="auth-tab-btn {% if active_tab == 'empresa' %}active{% endif %}" onclick="switchAuthTab('empresa')">
+        Empresa Parceira
+      </button>
+      <button type="button" class="auth-tab-btn {% if active_tab == 'admin' %}active{% endif %}" onclick="switchAuthTab('admin')">
+        Administrador
+      </button>
+    </div>
+
+    <!-- ------------------------------------------------------------------
+         FORMULÁRIO 1: LOGIN DE ALUNO (CPF ou E-mail + Senha)
+         ------------------------------------------------------------------ -->
+    <form action="{{ url_for('auth.login') }}" method="POST" id="form-login-aluno" style="{% if active_tab != 'aluno' %}display: none;{% endif %}">
+      <input type="hidden" name="login_type" value="aluno">
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">E-mail ou CPF</label>
+        <input type="text" name="identifier" class="auth-input-field" placeholder="Digite seu CPF ou E-mail SENAI" value="{{ identifier or '' }}" required autofocus>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Senha</label>
+        <input type="password" name="password" class="auth-input-field" placeholder="Digite sua senha de acesso" required>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Botão Vermelho Oficial ENTRAR (Desktop 2) -->
+        <button type="submit" class="btn-senai btn-block" style="height: 46px; font-size: 15px; letter-spacing: 0.5px;">
+          ENTRAR
+        </button>
+
+        <!-- Botão Vermelho Oficial CRIAR CONTA (Desktop 2) -->
+        <a href="{{ url_for('auth.register_aluno') }}" class="btn-senai btn-block" style="height: 46px; font-size: 15px; letter-spacing: 0.5px;">
+          CRIAR CONTA
+        </a>
+      </div>
+
+      <!-- Credenciais de Demonstração Rápidas -->
+      <div style="margin-top: 20px; padding: 10px; background-color: #F8F9FA; border-radius: 8px; font-size: 11.5px; color: #666; text-align: left;">
+        <strong style="color: var(--senai-red);">Conta de Teste Aluno:</strong><br>
+        CPF: <code>234.567.890-92</code> ou <code>clarisse.moura@aluno.senai.br</code><br>
+        Senha: <code>senai123</code>
+      </div>
+    </form>
+
+    <!-- ------------------------------------------------------------------
+         FORMULÁRIO 2: LOGIN DE EMPRESA (CNPJ + Código de Acesso Empresarial)
+         ------------------------------------------------------------------ -->
+    <form action="{{ url_for('auth.login') }}" method="POST" id="form-login-empresa" style="{% if active_tab != 'empresa' %}display: none;{% endif %}">
+      <input type="hidden" name="login_type" value="empresa">
+
+      <div class="auth-info-notice">
+        O acesso corporativo é exclusivo para empresas patrocinadoras e parceiras previamente autorizadas pelo SENAI.
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">CNPJ da Empresa</label>
+        <input type="text" name="cnpj" class="auth-input-field" placeholder="00.000.000/0000-00" data-mask="cnpj" value="{{ cnpj or '' }}" required>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Código de Acesso Empresarial</label>
+        <input type="password" name="access_code" class="auth-input-field" placeholder="Código fornecido pela administração SENAI" required>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
+        <button type="submit" class="btn-senai btn-block" style="height: 46px; font-size: 15px; letter-spacing: 0.5px;">
+          ENTRAR COMO EMPRESA
+        </button>
+      </div>
+
+      <!-- Credenciais de Teste para Empresa -->
+      <div style="margin-top: 20px; padding: 10px; background-color: #F8F9FA; border-radius: 8px; font-size: 11.5px; color: #666; text-align: left;">
+        <strong style="color: var(--senai-red);">Empresas Parceiras para Teste:</strong><br>
+        • <strong>TechCorp:</strong> CNPJ: <code>11.222.333/0001-81</code> | Código: <code>TECH-2024</code><br>
+        • <strong>WEG:</strong> CNPJ: <code>55.666.777/0001-81</code> | Código: <code>WEG-SENAI</code>
+      </div>
+    </form>
+
+    <!-- ------------------------------------------------------------------
+         FORMULÁRIO 3: LOGIN DE ADMINISTRADOR
+         ------------------------------------------------------------------ -->
+    <form action="{{ url_for('auth.login') }}" method="POST" id="form-login-admin" style="{% if active_tab != 'admin' %}display: none;{% endif %}">
+      <input type="hidden" name="login_type" value="admin">
+
+      <div class="auth-info-notice" style="border-left-color: #000;">
+        Área restrita à administração da plataforma Nexa SENAI para gestão de empresas, usuários e oportunidades.
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">E-mail Administrativo</label>
+        <input type="email" name="email" class="auth-input-field" placeholder="admin@senai.br" value="{{ email or '' }}" required>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Senha</label>
+        <input type="password" name="password" class="auth-input-field" placeholder="Digite sua senha de administrador" required>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <button type="submit" class="btn-senai btn-block" style="height: 46px; font-size: 15px; letter-spacing: 0.5px;">
+          ENTRAR NO PAINEL ADMIN
+        </button>
+      </div>
+
+      <!-- Credenciais de Teste para Admin -->
+      <div style="margin-top: 20px; padding: 10px; background-color: #F8F9FA; border-radius: 8px; font-size: 11.5px; color: #666; text-align: left;">
+        <strong style="color: var(--senai-red);">Administrador Padrão:</strong><br>
+        E-mail: <code>admin@senai.br</code><br>
+        Senha: <code>admin123</code>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('form-login-aluno').style.display = 'none';
+  document.getElementById('form-login-empresa').style.display = 'none';
+  document.getElementById('form-login-admin').style.display = 'none';
+
+  if (tab === 'aluno') {
+    document.querySelectorAll('.auth-tab-btn')[0].classList.add('active');
+    document.getElementById('form-login-aluno').style.display = 'block';
+  } else if (tab === 'empresa') {
+    document.querySelectorAll('.auth-tab-btn')[1].classList.add('active');
+    document.getElementById('form-login-empresa').style.display = 'block';
+  } else if (tab === 'admin') {
+    document.querySelectorAll('.auth-tab-btn')[2].classList.add('active');
+    document.getElementById('form-login-admin').style.display = 'block';
+  }
+}
+</script>
+{% endblock %}

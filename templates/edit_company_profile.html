@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Configurações da Empresa — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+  <div style="margin-bottom: 18px;">
+    <a href="{{ url_for('company.profile_view', company_id=company.id) }}" style="color: var(--text-secondary); font-size: 14px; font-weight: 600;">
+      <i class="fas fa-arrow-left"></i> Voltar ao Perfil da Empresa
+    </a>
+  </div>
+
+  <div class="nexa-card" style="padding: 32px;">
+    <h2 style="font-size: 22px; font-weight: 800; color: var(--senai-red); margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light);">
+      Configurações e Perfil Empresarial
+    </h2>
+
+    <form action="{{ url_for('company.edit_profile') }}" method="POST" enctype="multipart/form-data">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+        <div>
+          <label class="auth-input-label">Alterar Logo da Empresa:</label>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="{{ company.logo_url }}" alt="{{ company.name }}" style="width: 60px; height: 60px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-light);">
+            <input type="file" name="logo" accept="image/*" class="auth-input-field" style="padding-top: 8px;">
+          </div>
+        </div>
+
+        <div>
+          <label class="auth-input-label">Alterar Banner da Empresa:</label>
+          <input type="file" name="banner" accept="image/*" class="auth-input-field" style="padding-top: 8px;">
+        </div>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Razão Social / Nome da Empresa *</label>
+        <input type="text" name="name" class="auth-input-field" value="{{ company.name }}" required>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Headline / Slogan Institucional *</label>
+        <input type="text" name="headline" class="auth-input-field" value="{{ company.headline }}" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Setor de Atuação</label>
+          <input type="text" name="sector" class="auth-input-field" value="{{ company.sector }}">
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Número de Colaboradores</label>
+          <input type="text" name="employee_count" class="auth-input-field" value="{{ company.employee_count }}">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Localização (Polo Industrial ou Cidade)</label>
+          <input type="text" name="location" class="auth-input-field" value="{{ company.location }}">
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Website Oficial</label>
+          <input type="url" name="website" class="auth-input-field" value="{{ company.website or '' }}" placeholder="https://...">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="auth-input-group">
+          <label class="auth-input-label">E-mail de Contato para Recrutamento</label>
+          <input type="email" name="contact_email" class="auth-input-field" value="{{ company.contact_email or '' }}">
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Telefone de Contato</label>
+          <input type="text" name="contact_phone" class="auth-input-field" value="{{ company.contact_phone or '' }}">
+        </div>
+      </div>
+
+      <div class="auth-input-group">
+        <label class="auth-input-label">Sobre a Empresa (Apresentação Institucional):</label>
+        <textarea name="description" rows="5" class="auth-input-field" style="height: auto; padding: 12px;">{{ company.description or '' }}</textarea>
+      </div>
+
+      <h4 style="font-size: 15px; font-weight: 700; margin: 20px 0 12px; color: var(--text-primary);">Redes Sociais da Empresa</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="auth-input-group">
+          <label class="auth-input-label">LinkedIn</label>
+          <input type="url" name="linkedin" class="auth-input-field" value="{{ company.linkedin or '' }}" placeholder="https://linkedin.com/company/...">
+        </div>
+
+        <div class="auth-input-group">
+          <label class="auth-input-label">Instagram</label>
+          <input type="url" name="instagram" class="auth-input-field" value="{{ company.instagram or '' }}" placeholder="https://instagram.com/...">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+        <a href="{{ url_for('company.profile_view', company_id=company.id) }}" class="btn-senai-outline">Cancelar</a>
+        <button type="submit" class="btn-senai">Salvar Configurações</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

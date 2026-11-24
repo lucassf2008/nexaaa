@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="margin-bottom: 18px;">
+    <a href="{{ url_for('jobs.list_jobs') }}" style="color: var(--text-secondary); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+      <i class="fas fa-arrow-left"></i> Voltar para Lista de Vagas
+    </a>
+  </div>
+
+  <article class="nexa-card" style="padding: 32px;">
+    <!-- Cabeçalho da Vaga -->
+    <div style="display: flex; gap: 24px; align-items: flex-start; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-light);">
+      <img src="{{ job.company.logo_url }}" alt="{{ job.company.name }}" style="width: 80px; height: 80px; border-radius: 16px; object-fit: cover; border: 1px solid var(--border-light);">
+      
+      <div style="flex: 1;">
+        <h1 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">{{ job.title }}</h1>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+          <a href="{{ url_for('company.profile_view', company_id=job.company.id) }}" style="font-weight: 700; color: var(--senai-red);">
+            {{ job.company.name }}
+          </a>
+          <span>&bull;</span>
+          <span><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
+          <span>&bull;</span>
+          <span><i class="far fa-calendar-alt"></i> Publicada recentemente</span>
+        </div>
+
+        <div class="job-tags-row">
+          <span class="job-badge-pill red-tint">{{ job.job_type }}</span>
+          <span class="job-badge-pill">{{ job.modality }}</span>
+          <span class="job-badge-pill">{{ job.area }}</span>
+          <span class="job-badge-pill">Nível: {{ job.experience_level }}</span>
+          {% if job.vacancies %}
+            <span class="job-badge-pill">{{ job.vacancies }} vaga(s)</span>
+          {% endif %}
+          {% if job.salary %}
+            <span class="job-badge-pill" style="color: #2E7D32; font-weight: 600;">
+              <i class="fas fa-money-bill-wave"></i> {{ job.salary }}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Informações da Candidatura / Status -->
+    <div style="margin-bottom: 28px;">
+      {% if has_applied and existing_application %}
+        <div style="background-color: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: var(--radius-md); padding: 18px 22px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <h4 style="font-size: 16px; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-check-circle"></i> Candidatura Realizada com Sucesso!
+            </h4>
+            <span style="font-size: 13px; font-weight: 800; text-transform: uppercase; padding: 4px 12px; border-radius: var(--radius-pill); background-color: #DCFCE7; color: #15803D;">
+              Status: {{ existing_application.status }}
+            </span>
+          </div>
+          <p style="font-size: 13.5px; color: #14532D;">
+            Sua candidatura foi enviada para o recrutamento da empresa em {{ existing_application.created_at.strftime('%d/%m/%Y às %H:%M') }}.
+          </p>
+          {% if existing_application.notes %}
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #86EFAC; font-size: 13.5px; color: #14532D;">
+              <strong>Feedback da Empresa:</strong> {{ existing_application.notes }}
+            </div>
+          {% endif %}
+        </div>
+      {% elif current_user and current_user.role == 'aluno' %}
+        <div style="display: flex; gap: 14px; align-items: center;">
+          <button type="button" class="btn-senai" onclick="openModal('apply-modal')">
+            <i class="fas fa-paper-plane"></i> Candidatar-se a esta Vaga
+          </button>
+          
+          <button type="button" class="btn-senai-outline save-job-btn {% if is_saved %}saved{% endif %}" data-job-id="{{ job.id }}">
+            <i class="{% if is_saved %}fas{% else %}far{% endif %} fa-bookmark"></i>
+            <span>{% if is_saved %}Vaga Salva{% else %}Salvar Vaga{% endif %}</span>
+          </button>
+        </div>
+      {% elif current_user and current_user.role == 'empresa' and current_user.company_profile.id == job.company_id %}
+        <div style="display: flex; gap: 14px; align-items: center;">
+          <a href="{{ url_for('company.job_candidates', job_id=job.id) }}" class="btn-senai">
+            <i class="fas fa-users"></i> Ver Candidatos inscritos nesta vaga ({{ job.applications.count() }})
+          </a>
+        </div>
+      {% elif not current_user %}
+        <div style="background-color: #F9FAFB; padding: 16px 20px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 14px; color: var(--text-secondary);">Faça login como aluno do SENAI para se candidatar.</span>
+          <a href="{{ url_for('auth.login') }}" class="btn-senai btn-sm">Entrar e Candidatar-se</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Descrição Detalhada -->
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; border-left: 4px solid var(--senai-red); padding-left: 10px;">
+        Descrição da Oportunidade
+      </h3>
+      <div style="font-size: 14.5px; line-height: 1.7; color: #374151; white-space: pre-line;">
+        {{ job.description }}
+      </div>
+    </div>
+
+    <!-- Requisitos -->
+    {% if job.requirements %}
+      <div style="margin-bottom: 24px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; border-left: 4px solid var(--senai-red); padding-left: 10px;">
+          Requisitos e Qualificações
+        </h3>
+        <div style="font-size: 14.5px; line-height: 1.7; color: #374151; white-space: pre-line;">
+          {{ job.requirements }}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Benefícios -->
+    {% if job.benefits %}
+      <div style="margin-bottom: 28px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; border-left: 4px solid var(--senai-red); padding-left: 10px;">
+          Benefícios Oferecidos
+        </h3>
+        <div style="font-size: 14.5px; line-height: 1.7; color: #374151;">
+          {{ job.benefits }}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Sobre a Empresa -->
+    <div style="background-color: #F8F9FA; border-radius: var(--radius-md); padding: 20px; border: 1px solid var(--border-light);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+        <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Sobre a {{ job.company.name }}</h4>
+        <a href="{{ url_for('company.profile_view', company_id=job.company.id) }}" class="btn-senai-outline btn-sm">
+          Visitar Perfil da Empresa
+        </a>
+      </div>
+      <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;">
+        {{ job.company.description or 'Empresa parceira do ecossistema Nexa SENAI.' }}
+      </p>
+    </div>
+  </article>
+</div>
+
+<!-- Modal de Candidatura -->
+{% if current_user and current_user.role == 'aluno' and not has_applied %}
+  <div class="modal-overlay" id="apply-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" onclick="closeModal('apply-modal')">&times;</button>
+      
+      <h3 style="font-size: 20px; font-weight: 800; color: var(--senai-red); margin-bottom: 14px;">
+        Confirmar Candidatura
+      </h3>
+      
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 18px;">
+        Você está se candidatando para a vaga <strong>{{ job.title }}</strong> na empresa <strong>{{ job.company.name }}</strong>.
+      </p>
+
+      <form action="{{ url_for('jobs.apply_to_job', job_id=job.id) }}" method="POST">
+        <div class="auth-input-group">
+          <label class="auth-input-label">Mensagem de Apresentação / Carta de Motivação (Opcional):</label>
+          <textarea name="cover_letter" rows="4" class="auth-input-field" style="height: auto; padding: 12px;" placeholder="Conte brevemente por que você tem interesse nesta vaga e destaque seus projetos no SENAI..."></textarea>
+        </div>
+
+        <div style="background-color: #EFF6FF; border-left: 3px solid #2563EB; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; color: #1E40AF; margin-bottom: 20px;">
+          <i class="fas fa-info-circle"></i> As informações do seu perfil de aluno (cursos, competências e contatos) serão compartilhadas diretamente com a empresa.
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button type="button" class="btn-senai-outline" onclick="closeModal('apply-modal')">Cancelar</button>
+          <button type="submit" class="btn-senai">Confirmar e Enviar Candidatura</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

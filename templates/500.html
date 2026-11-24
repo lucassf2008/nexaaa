@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Erro Interno — Nexa SENAI{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 60px 20px;">
+  <div style="font-size: 72px; font-weight: 900; color: var(--senai-red); line-height: 1;">500</div>
+  <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 16px 0 8px;">
+    Erro Interno do Servidor
+  </h2>
+  <p style="font-size: 15px; color: var(--text-secondary); max-width: 460px; margin: 0 auto 24px;">
+    Ocorreu uma instabilidade inesperada no servidor. Por favor, tente novamente em alguns instantes.
+  </p>
+  <a href="{{ url_for('main.feed') }}" class="btn-senai">
+    Voltar para o Início
+  </a>
+</div>
+{% endblock %}

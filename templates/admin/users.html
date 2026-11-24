@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Usuários da Plataforma — Painel Nexa SENAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 1140px; margin: 0 auto;">
+  <div style="margin-bottom: 18px;">
+    <a href="{{ url_for('admin.dashboard') }}" style="color: var(--text-secondary); font-size: 14px; font-weight: 600;">
+      <i class="fas fa-arrow-left"></i> Voltar ao Painel Admin
+    </a>
+  </div>
+
+  <h1 class="page-main-title" style="text-align: left; margin-bottom: 24px;">
+    Gestão de Usuários da Rede Nexa SENAI
+  </h1>
+
+  <!-- Alunos -->
+  <div class="nexa-card" style="padding: 24px; margin-bottom: 28px;">
+    <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 16px;">
+      Alunos e Ex-Alunos do SENAI ({{ students|length }})
+    </h3>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-light); color: var(--text-secondary); text-align: left;">
+            <th style="padding: 10px 12px;">Aluno</th>
+            <th style="padding: 10px 12px;">CPF</th>
+            <th style="padding: 10px 12px;">Curso SENAI</th>
+            <th style="padding: 10px 12px;">Cidade</th>
+            <th style="padding: 10px 12px;">Status</th>
+            <th style="padding: 10px 12px; text-align: right;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for st in students %}
+            <tr style="border-bottom: 1px solid var(--border-light);">
+              <td style="padding: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <img src="{{ st.avatar_url }}" alt="{{ st.full_name }}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                  <div>
+                    <strong style="color: var(--text-primary); display: block;">{{ st.full_name }}</strong>
+                    <span style="font-size: 11.5px; color: var(--text-muted);">{{ st.user.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td style="padding: 12px; font-family: monospace;">{{ st.cpf }}</td>
+              <td style="padding: 12px;">{{ st.senai_course }}</td>
+              <td style="padding: 12px;">{{ st.city }} - {{ st.state }}</td>
+              <td style="padding: 12px;">
+                <span class="job-badge-pill" style="font-size: 11px; {% if not st.user.is_active %}background-color: #FEE2E2; color: #DC2626;{% else %}background-color: #DCFCE7; color: #166534;{% endif %}">
+                  {{ 'Inativo / Bloqueado' if not st.user.is_active else 'Ativo' }}
+                </span>
+              </td>
+              <td style="padding: 12px; text-align: right;">
+                <div style="display: inline-flex; gap: 8px;">
+                  <a href="{{ url_for('profile.student_profile', student_id=st.id) }}" class="btn-senai-outline btn-sm" target="_blank">
+                    Ver Perfil
+                  </a>
+                  <form action="{{ url_for('admin.toggle_user_active', user_id=st.user.id) }}" method="POST">
+                    <button type="submit" class="btn-sm" style="{% if st.user.is_active %}background-color: #DC2626; color: white; border: none; border-radius: var(--radius-pill); cursor: pointer;{% else %}background-color: #16A34A; color: white; border: none; border-radius: var(--radius-pill); cursor: pointer;{% endif %}">
+                      {{ 'Bloquear' if st.user.is_active else 'Ativar' }}
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
